@@ -15,7 +15,6 @@ export class PrismaService
   async onModuleInit() {
     try {
       await this.$connect();
-      await this.$queryRaw`SELECT 1`;
       console.log('✅ Prisma connected to MySQL');
     } catch (error) {
       console.error('❌ Prisma connection error:', error);
