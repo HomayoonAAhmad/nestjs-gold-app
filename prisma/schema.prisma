@@ -54,3 +54,9 @@ enum TransactionType {
   sell
   withdraw
 }
+
+model GoldPrice {
+  id         Int      @id @default(autoincrement())
+  price      Int
+  created_at DateTime @default(now())
+}
