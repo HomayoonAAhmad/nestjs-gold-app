@@ -44,15 +44,30 @@ model Transaction {
   price_per_milligram Int
   created_at DateTime @default(now())
   type TransactionType
+  payment_type PaymentType?
+  status TransactionStatus @default(pending)
+  authority String? @unique
 
   user_id Int
   user User @relation(fields: [user_id], references: [id],onDelete: Cascade)
+}
+
+enum TransactionStatus {
+  success
+  pending
+  failed
 }
 
 enum TransactionType {
   buy
   sell
   withdraw
+  deposit
+}
+
+enum PaymentType {
+  gateway
+  wallet
 }
 
 model GoldPrice {

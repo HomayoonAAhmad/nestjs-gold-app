@@ -19,4 +19,10 @@ export class UserController {
     const id = req.user.id;
     return this.userService.updateUserData(id);
   }
+
+  @Get('assets')
+  getUserAssets(@Req() req: Request) {
+    const userId = req.user.id;
+    return this.userService.getUserAssets(userId);
+  }
 }

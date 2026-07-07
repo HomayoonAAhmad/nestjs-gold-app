@@ -6,6 +6,8 @@ import {
 } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
 import { Request } from 'express';
+import { Reflector } from '@nestjs/core';
+import { IS_SKIP_AUTH } from '../decorators/skipAuth.decorator';
 
 interface JwtPayload {
   id: number;
@@ -17,7 +19,18 @@ interface AuthRequest extends Request {
 
 @Injectable()
 export class AuthGuard implements CanActivate {
+  constructor(private reflector: Reflector) {}
+
   canActivate(context: ExecutionContext) {
+    const isSkipAuth = this.reflector.getAllAndOverride<boolean>(IS_SKIP_AUTH, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+
+    if (isSkipAuth) {
+      return true;
+    }
+
     const request = context.switchToHttp().getRequest<AuthRequest>();
     const token = request.headers?.authorization?.split('Bearer ')[1];
 

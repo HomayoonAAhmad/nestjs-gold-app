@@ -60,7 +60,12 @@ export class AuthService {
 
     if (!user) {
       user = await this.prismaService.user.create({
-        data: { phone: phone },
+        data: {
+          phone: phone,
+          wallet: {
+            create: {},
+          },
+        },
       });
     }
 

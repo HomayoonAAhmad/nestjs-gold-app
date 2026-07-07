@@ -7,6 +7,8 @@ import { GoldModule } from './gold/gold.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { TransactionsModule } from './transactions/transactions.module';
 import { UserModule } from './user/user.module';
+import { WalletModule } from './wallet/wallet.module';
+import { PaymentModule } from './payment/payment.module';
 
 @Module({
   imports: [
@@ -16,6 +18,8 @@ import { UserModule } from './user/user.module';
     GoldModule,
     ScheduleModule.forRoot(),
     TransactionsModule,
+    WalletModule,
+    PaymentModule,
   ],
   controllers: [AppController],
   providers: [AppService],
