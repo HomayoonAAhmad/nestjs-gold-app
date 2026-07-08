@@ -66,6 +66,8 @@ export class PaymentService {
 
     return {
       transaction_id: transaction.id,
+      message:
+        'عملیات با موفقیت انجام شد تا چند ثانیه دیگر به درگاه هدایت خواهید شد',
       gateway_url: `${process.env.ZARINPAL_PAY_URL}/${data.data.authority}`,
     };
   }

@@ -82,18 +82,15 @@ export class TransactionsService {
       );
 
     const gold_amount = amount / goldPrice.price!;
-    console.log(amount);
-    console.log(goldPrice.price);
-    console.log(gold_amount);
 
-    const transaction = await this.prismaService.$transaction(async (tx) => {
-      await tx.wallet.update({
+    const result = await this.prismaService.$transaction(async (tx) => {
+      const wallet = await tx.wallet.update({
         where: {
           user_id: userId,
         },
         data: {
           gold_amount: {
-            increment: gold_amount,
+            increment: Math.round(gold_amount),
           },
           amount: {
             decrement: amount,
@@ -101,7 +98,7 @@ export class TransactionsService {
         },
       });
 
-      return await tx.transaction.create({
+      const transaction = await tx.transaction.create({
         data: {
           user_id: userId,
           total_amount: amount,
@@ -112,17 +109,22 @@ export class TransactionsService {
           status: 'success',
         },
       });
+
+      return {
+        wallet,
+        transaction,
+      };
     });
 
     return {
       code: 200,
-      message: 'خرید با موفقیت انجام شد، مبلغ ارسالی از کیف پول شما کسر شد!',
-      transaction,
+      message: `خرید با موفقیت انجام شد، مبلغ ${amount} از کیف پول شما کسر و مقدار ${Math.round(gold_amount)} میلی گرم به دارایی شما افزوده شد!`,
+      result,
     };
   }
 
   private async buyWithGateway(userId: number, amount: number) {
-    if (!amount) throw new BadRequestException('مبلغ مورد نظر ارسال نشده');
+    if (!amount) throw new BadRequestException('مبلغ ارسال نشده');
 
     return await this.paymentService.requestGateway({
       userId,
