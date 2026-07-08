@@ -26,7 +26,7 @@ export class GoldService {
 
   //   @Cron(CronExpression.EVERY_MINUTE)
   //   @Cron(CronExpression.EVERY_SECOND)
-  // @Cron(CronExpression.EVERY_30_SECONDS)
+  //   @Cron(CronExpression.EVERY_30_SECONDS)
   async handleCron() {
     try {
       const response = await firstValueFrom(

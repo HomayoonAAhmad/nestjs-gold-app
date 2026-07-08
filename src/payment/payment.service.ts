@@ -55,8 +55,10 @@ export class PaymentService {
         user_id: userId,
         total_amount: amount,
         authority: data.data.authority as string,
-        gold_amount: Math.round(goldAmount),
-        price_per_milligram: goldPrice.price!,
+        ...((type === 'sell' || type === 'buy') && {
+          gold_amount: Math.round(goldAmount),
+          price_per_milligram: goldPrice.price!,
+        }),
         payment_type: PaymentType.gateway,
         type: type,
       },
@@ -103,13 +105,30 @@ export class PaymentService {
     );
 
     if (data.data.code === 100) {
-      await this.prismaService.transaction.update({
-        where: {
-          id: transaction.id,
-        },
-        data: {
-          status: 'success',
-        },
+      await this.prismaService.$transaction(async (tx) => {
+        await tx.wallet.update({
+          where: { user_id: transaction.user_id },
+          data: {
+            ...(transaction.type === 'buy' && {
+              gold_amount: {
+                increment: transaction.gold_amount!,
+              },
+            }),
+            ...(transaction.type === 'deposit' && {
+              amount: {
+                increment: transaction.total_amount,
+              },
+            }),
+          },
+        });
+        await tx.transaction.update({
+          where: {
+            id: transaction.id,
+          },
+          data: {
+            status: 'success',
+          },
+        });
       });
     } else if (data.data.code !== 101) {
       await this.prismaService.transaction.update({

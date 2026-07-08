@@ -17,6 +17,7 @@ export class UserService {
         wallet: {
           select: {
             amount: true,
+            gold_amount: true,
           },
         },
       },

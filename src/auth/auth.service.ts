@@ -34,7 +34,6 @@ export class AuthService {
       code: 200,
       message: 'کد با موفقیت ارسال شد',
       expiresDate: expiresAt,
-      otp_code: otp,
     };
   }
 
@@ -52,7 +51,11 @@ export class AuthService {
     if (otp.expiresAt < new Date())
       throw new ForbiddenException('کد وارد شده منقضی شده است');
 
-    await this.prismaService.otp.delete({ where: { id: otp.id } });
+    await this.prismaService.otp.deleteMany({
+      where: {
+        phone,
+      },
+    });
 
     let user = await this.prismaService.user.findUnique({
       where: { phone: phone },

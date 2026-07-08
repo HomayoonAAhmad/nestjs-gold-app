@@ -82,6 +82,9 @@ export class TransactionsService {
       );
 
     const gold_amount = amount / goldPrice.price!;
+    console.log(amount);
+    console.log(goldPrice.price);
+    console.log(gold_amount);
 
     const transaction = await this.prismaService.$transaction(async (tx) => {
       await tx.wallet.update({
@@ -89,6 +92,9 @@ export class TransactionsService {
           user_id: userId,
         },
         data: {
+          gold_amount: {
+            increment: gold_amount,
+          },
           amount: {
             decrement: amount,
           },
@@ -148,6 +154,9 @@ export class TransactionsService {
       const wallet = await tx.wallet.update({
         where: { user_id: userId },
         data: {
+          gold_amount: {
+            decrement: body.gold_amount,
+          },
           amount: {
             increment: amount,
           },
