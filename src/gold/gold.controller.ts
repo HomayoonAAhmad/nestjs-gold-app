@@ -10,4 +10,9 @@ export class GoldController {
   getGoldPrice() {
     return this.goldService.getGoldPrice();
   }
+
+  @Get('chart')
+  getGoldChart() {
+    return this.goldService.getGoldChart();
+  }
 }
