@@ -5,13 +5,18 @@ import {
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
-import { PaymentType, TransactionType } from 'generated/prisma/enums';
+import {
+  PaymentType,
+  TransactionStatus,
+  TransactionType,
+} from 'generated/prisma/enums';
 import { CardsService } from 'src/cards/cards.service';
 import { GoldService } from 'src/gold/gold.service';
 import { PaymentService } from 'src/payment/payment.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserService } from 'src/user/user.service';
 import { WalletService } from 'src/wallet/wallet.service';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 interface userId {
   userId: number;
@@ -64,6 +69,11 @@ export class TransactionsService {
         user_id: userId,
         type: type,
       },
+      ...(type === TransactionType.withdraw && {
+        include: {
+          bank_card: true,
+        },
+      }),
     });
 
     return transactions;
@@ -213,24 +223,77 @@ export class TransactionsService {
       userId: userId,
     });
 
-    // if (!card) {
-    //   throw new NotFoundException('کارت بانکی انتخاب شده معتبر نمیباشد');
-    // }
+    const transaction = await this.prismaService.$transaction(async (tx) => {
+      const pending = await tx.transaction.findFirst({
+        where: {
+          user_id: userId,
+          type: TransactionType.withdraw,
+          status: TransactionStatus.pending,
+        },
+      });
 
-    const transaction = await this.prismaService.transaction.create({
-      data: {
-        user_id: userId,
-        total_amount: body.amount,
-        payment_type: PaymentType.wallet,
-        type: TransactionType.withdraw,
-        status: 'pending',
-        bank_card_id: card?.id,
-      },
+      if (pending) {
+        throw new ConflictException(
+          'درخواست برداشت قبلی هنوز در حال بررسی است',
+        );
+      }
+
+      return await tx.transaction.create({
+        data: {
+          user_id: userId,
+          total_amount: body.amount,
+          payment_type: PaymentType.wallet,
+          type: TransactionType.withdraw,
+          status: 'pending',
+          bank_card_id: card?.id,
+        },
+      });
     });
 
     return {
       message: 'درخواست برداشت از کیف پول شما با موفقیت ثبت شد',
       transaction,
     };
+  }
+
+  // @Cron(CronExpression.EVERY_8_HOURS)
+  @Cron(CronExpression.EVERY_MINUTE)
+  async handleCron() {
+    try {
+      const transactions = await this.prismaService.transaction.findMany({
+        where: {
+          status: 'pending',
+          type: 'withdraw',
+        },
+      });
+      for (const transaction of transactions) {
+        try {
+          await this.prismaService.$transaction(async (tx) => {
+            await tx.wallet.update({
+              where: {
+                user_id: transaction.user_id,
+              },
+              data: {
+                amount: {
+                  decrement: transaction.total_amount,
+                },
+              },
+            });
+            await tx.transaction.update({
+              where: {
+                id: transaction.id,
+              },
+              data: {
+                status: TransactionStatus.success,
+              },
+            });
+          });
+        } catch (error) {
+          console.error(error);
+        }
+      }
+    } catch (error) {
+      console.error(error);
+    }
   }
 }
