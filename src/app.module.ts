@@ -9,6 +9,7 @@ import { TransactionsModule } from './transactions/transactions.module';
 import { UserModule } from './user/user.module';
 import { WalletModule } from './wallet/wallet.module';
 import { PaymentModule } from './payment/payment.module';
+import { CardsModule } from './cards/cards.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { PaymentModule } from './payment/payment.module';
     TransactionsModule,
     WalletModule,
     PaymentModule,
+    CardsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

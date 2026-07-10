@@ -17,6 +17,7 @@ model User {
 
   wallet Wallet?
   transactions Transaction[]
+  card BankCard[]
 }
 
 model Otp {
@@ -51,6 +52,9 @@ model Transaction {
   status TransactionStatus @default(pending)
   authority String? @unique
 
+  bank_card_id Int?
+  bank_card BankCard? @relation(fields: [bank_card_id], references: [id])
+
   user_id Int
   user User @relation(fields: [user_id], references: [id],onDelete: Cascade)
 
@@ -79,4 +83,18 @@ model GoldPrice {
   id         Int      @id @default(autoincrement())
   price      Int
   created_at DateTime @default(now())
+}
+
+model BankCard {
+  id         Int      @id @default(autoincrement())
+  card_number String @unique
+  shaba String @unique
+  bank_name String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  transactions Transaction[]
+  
+  user_id Int
+  user User @relation(fields: [user_id], references: [id],onDelete: Cascade)
 }

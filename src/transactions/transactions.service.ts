@@ -6,34 +6,44 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { PaymentType, TransactionType } from 'generated/prisma/enums';
+import { CardsService } from 'src/cards/cards.service';
 import { GoldService } from 'src/gold/gold.service';
 import { PaymentService } from 'src/payment/payment.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserService } from 'src/user/user.service';
 import { WalletService } from 'src/wallet/wallet.service';
 
-interface getTransactions {
+interface userId {
   userId: number;
+}
+
+interface getTransactions extends userId {
   type: TransactionType;
 }
 
-interface getSingleTransaction {
-  userId: number;
+interface getSingleTransaction extends userId {
   id: number;
 }
 
-interface createTransaction {
-  userId: number;
+interface createTransaction extends userId {
   body: {
     amount: number;
     payment_type: PaymentType;
   };
 }
 
-interface sellTransaction {
-  userId: number;
+interface sellTransaction extends userId {
   body: {
     gold_amount: number;
+  };
+}
+
+interface withdrawTransaction extends userId {
+  body: {
+    amount: number;
+    // shaba: string;
+    // bank_name: string;
+    card_id: number;
   };
 }
 
@@ -45,6 +55,7 @@ export class TransactionsService {
     private readonly goldService: GoldService,
     private readonly userService: UserService,
     private readonly paymentService: PaymentService,
+    private readonly cardService: CardsService,
   ) {}
 
   async getTransactions({ userId, type }: getTransactions) {
@@ -186,6 +197,40 @@ export class TransactionsService {
       code: 200,
       message: `عملیات با موفقیت انجام شد مبلغ "${amount}" به کیف پول شما افزوده شد`,
       result,
+    };
+  }
+
+  async withdrawTransaction({ userId, body }: withdrawTransaction) {
+    const balance = await this.walletService.getWalletBalance(userId);
+
+    if (balance! < body.amount)
+      throw new UnprocessableEntityException(
+        'موجودی کیف پول کمتر از مبلغ درخواستی است',
+      );
+
+    const card = await this.cardService.getSingleCard({
+      cardId: body.card_id,
+      userId: userId,
+    });
+
+    // if (!card) {
+    //   throw new NotFoundException('کارت بانکی انتخاب شده معتبر نمیباشد');
+    // }
+
+    const transaction = await this.prismaService.transaction.create({
+      data: {
+        user_id: userId,
+        total_amount: body.amount,
+        payment_type: PaymentType.wallet,
+        type: TransactionType.withdraw,
+        status: 'pending',
+        bank_card_id: card?.id,
+      },
+    });
+
+    return {
+      message: 'درخواست برداشت از کیف پول شما با موفقیت ثبت شد',
+      transaction,
     };
   }
 }

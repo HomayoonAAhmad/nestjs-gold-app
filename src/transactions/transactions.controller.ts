@@ -10,9 +10,13 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { TransactionType } from 'generated/prisma/enums';
 import { AuthGuard } from 'src/common/guards/auth.guard';
-import { BuyGoldDto, SellGoldDto } from './transactions.dto';
+import {
+  BuyGoldDto,
+  getTransactionDto,
+  SellGoldDto,
+  WithdrawTransactionDto,
+} from './transactions.dto';
 import { TransactionsService } from './transactions.service';
 
 @Controller('transactions')
@@ -21,10 +25,10 @@ export class TransactionsController {
   constructor(private readonly transactionsService: TransactionsService) {}
 
   @Get()
-  getTransactions(@Req() req: Request, @Query('type') type: TransactionType) {
+  getTransactions(@Req() req: Request, @Query() query: getTransactionDto) {
     return this.transactionsService.getTransactions({
       userId: req.user.id,
-      type: type,
+      type: query.type,
     });
   }
 
@@ -50,6 +54,17 @@ export class TransactionsController {
   @Post('sell')
   sellGoldTransaction(@Req() req: Request, @Body() body: SellGoldDto) {
     return this.transactionsService.sellGoldTransaction({
+      userId: req.user.id,
+      body,
+    });
+  }
+
+  @Post('withdraw')
+  withdrawTransaction(
+    @Req() req: Request,
+    @Body() body: WithdrawTransactionDto,
+  ) {
+    return this.transactionsService.withdrawTransaction({
       userId: req.user.id,
       body,
     });
