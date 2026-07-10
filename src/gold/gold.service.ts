@@ -33,7 +33,7 @@ export class GoldService {
         this.httpService.get(process.env.GOLD_API!),
       );
 
-      const price = response?.data?.gold18?.price;
+      const price = Math.round(response?.data?.gold18?.price / 10);
 
       if (!price) {
         return;
