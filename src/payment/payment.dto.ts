@@ -9,6 +9,6 @@ export class ValidatePaymentDto {
   @IsNotEmpty({
     message: 'وضعیت تراکنش ارسال نشده',
   })
-  @IsIn(['OK', 'NOK'])
+  @IsIn(['OK', 'NOK'], { message: 'وضعیت ارسال شده معتبر نیست' })
   Status!: 'OK' | 'NOK';
 }
