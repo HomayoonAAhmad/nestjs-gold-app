@@ -10,6 +10,7 @@ import { UserModule } from './user/user.module';
 import { WalletModule } from './wallet/wallet.module';
 import { PaymentModule } from './payment/payment.module';
 import { CardsModule } from './cards/cards.module';
+import { SmsModule } from './sms/sms.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { CardsModule } from './cards/cards.module';
     WalletModule,
     PaymentModule,
     CardsModule,
+    SmsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

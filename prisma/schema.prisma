@@ -18,6 +18,8 @@ model User {
   wallet Wallet?
   transactions Transaction[]
   card BankCard[]
+
+  @@index([id])
 }
 
 model Otp {
@@ -58,7 +60,7 @@ model Transaction {
   user_id Int
   user User @relation(fields: [user_id], references: [id],onDelete: Cascade)
 
-  @@index([user_id, status, type, authority])
+  @@index([user_id, status, type, authority, bank_card_id])
 }
 
 enum TransactionStatus {
@@ -83,6 +85,8 @@ model GoldPrice {
   id         Int      @id @default(autoincrement())
   price      Int
   created_at DateTime @default(now())
+
+  @@index([id])
 }
 
 model BankCard {
@@ -97,4 +101,6 @@ model BankCard {
   
   user_id Int
   user User @relation(fields: [user_id], references: [id],onDelete: Cascade)
+
+  @@index([id, user_id])
 }

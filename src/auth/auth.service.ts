@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as jwt from 'jsonwebtoken';
+import { SmsService } from 'src/sms/sms.service';
 // import { generateOtp } from 'src/common/utils/helper';
 
 interface requestBody {
@@ -14,7 +15,10 @@ interface requestBody {
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly smsService: SmsService,
+  ) {}
 
   async sendOtp({ phone }: { phone: requestBody['phone'] }) {
     if (!phone) throw new BadRequestException('شماره تماس ارسال نشده');
@@ -28,6 +32,11 @@ export class AuthService {
         code: otp,
         expiresAt,
       },
+    });
+
+    await this.smsService.sendOTPsms({
+      code: otp,
+      phone: phone,
     });
 
     return {
