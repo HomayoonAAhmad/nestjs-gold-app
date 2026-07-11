@@ -34,7 +34,7 @@ export class AuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<AuthRequest>();
     const token = request.headers?.authorization?.split('Bearer ')[1];
 
-    if (!token) throw new UnauthorizedException('توکن ارسال نشده');
+    if (!token) throw new UnauthorizedException('توکن ارسال نشده!');
 
     try {
       const payload = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;

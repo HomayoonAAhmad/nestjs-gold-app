@@ -14,7 +14,10 @@ async function bootstrap() {
       },
     }),
   );
-  app.enableCors();
+  app.enableCors({
+    origin: ['https://myvueapp.runflare.run/', 'http://localhost:5173'],
+    credentials: true,
+  });
   app.setGlobalPrefix('api/v1');
   await app.listen(process.env.PORT ?? 3000);
 }
